@@ -48,10 +48,5 @@ export function provideHandleTransaction(
 }
 
 export default {
-  handleTransaction: provideHandleTransaction(
-    SWAP_EVENT,
-    UNISWAP_FACTORY,
-    POOL_INIT_CODE_HASH,
-    ethersProvider
-  ),
+  handleTransaction: provideHandleTransaction(SWAP_EVENT, UNISWAP_FACTORY, POOL_INIT_CODE_HASH, ethersProvider),
 };

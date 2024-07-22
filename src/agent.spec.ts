@@ -29,22 +29,23 @@ describe("Uniswap V3 Swap Detector Agent", () => {
         cache.set(address, isValid);
         return isValid;
       }, // Mock verifyPoolAddress
-      () => Finding.fromObject({
-        name: "Mock Finding",
-        description: "Mock finding for testing",
-        alertId: "NETHERMIND-1",
-        protocol: "UniswapV3",
-        severity: FindingSeverity.Info,
-        type: FindingType.Info,
-        metadata: {
-          poolAddress,
-          amount0: "1000",
-          amount1: "2000",
-          sender: senderAddress,
-          recipient: recipientAddress,
-          liquidity: "500",
-        },
-      })
+      () =>
+        Finding.fromObject({
+          name: "Mock Finding",
+          description: "Mock finding for testing",
+          alertId: "NETHERMIND-1",
+          protocol: "UniswapV3",
+          severity: FindingSeverity.Info,
+          type: FindingType.Info,
+          metadata: {
+            poolAddress,
+            amount0: "1000",
+            amount1: "2000",
+            sender: senderAddress,
+            recipient: recipientAddress,
+            liquidity: "500",
+          },
+        })
     );
   });
 
@@ -95,7 +96,7 @@ describe("Uniswap V3 Swap Detector Agent", () => {
           recipient: recipientAddress,
           liquidity: "500",
         },
-      })
+      }),
     ]);
   });
 
@@ -106,22 +107,23 @@ describe("Uniswap V3 Swap Detector Agent", () => {
       POOL_INIT_CODE_HASH,
       mockProvider,
       async () => false, // Mock verifyPoolAddress to return false
-      () => Finding.fromObject({
-        name: "Mock Finding",
-        description: "Mock finding for testing",
-        alertId: "NETHERMIND-1",
-        protocol: "UniswapV3",
-        severity: FindingSeverity.Info,
-        type: FindingType.Info,
-        metadata: {
-          poolAddress: invalidPoolAddress,
-          amount0: "1000",
-          amount1: "2000",
-          sender: senderAddress,
-          recipient: recipientAddress,
-          liquidity: "500",
-        },
-      })
+      () =>
+        Finding.fromObject({
+          name: "Mock Finding",
+          description: "Mock finding for testing",
+          alertId: "NETHERMIND-1",
+          protocol: "UniswapV3",
+          severity: FindingSeverity.Info,
+          type: FindingType.Info,
+          metadata: {
+            poolAddress: invalidPoolAddress,
+            amount0: "1000",
+            amount1: "2000",
+            sender: senderAddress,
+            recipient: recipientAddress,
+            liquidity: "500",
+          },
+        })
     );
 
     const txEvent = new TestTransactionEvent()
@@ -156,22 +158,23 @@ describe("Uniswap V3 Swap Detector Agent", () => {
         cache.set(address, isValid);
         return isValid;
       }, // Mock verifyPoolAddress
-      () => Finding.fromObject({
-        name: "Mock Finding",
-        description: "Mock finding for testing",
-        alertId: "NETHERMIND-1",
-        protocol: "UniswapV3",
-        severity: FindingSeverity.Info,
-        type: FindingType.Info,
-        metadata: {
-          poolAddress: cachedPoolAddress,
-          amount0: "1000",
-          amount1: "2000",
-          sender: senderAddress,
-          recipient: recipientAddress,
-          liquidity: "500",
-        },
-      })
+      () =>
+        Finding.fromObject({
+          name: "Mock Finding",
+          description: "Mock finding for testing",
+          alertId: "NETHERMIND-1",
+          protocol: "UniswapV3",
+          severity: FindingSeverity.Info,
+          type: FindingType.Info,
+          metadata: {
+            poolAddress: cachedPoolAddress,
+            amount0: "1000",
+            amount1: "2000",
+            sender: senderAddress,
+            recipient: recipientAddress,
+            liquidity: "500",
+          },
+        })
     );
 
     const txEvent = new TestTransactionEvent()
@@ -206,22 +209,23 @@ describe("Uniswap V3 Swap Detector Agent", () => {
         cache.set(address, isValid);
         return isValid;
       }, // Mock verifyPoolAddress
-      () => Finding.fromObject({
-        name: "Mock Finding",
-        description: "Mock finding for testing",
-        alertId: "NETHERMIND-1",
-        protocol: "UniswapV3",
-        severity: FindingSeverity.Info,
-        type: FindingType.Info,
-        metadata: {
-          poolAddress: cachedPoolAddress,
-          amount0: "1000",
-          amount1: "2000",
-          sender: senderAddress,
-          recipient: recipientAddress,
-          liquidity: "500",
-        },
-      })
+      () =>
+        Finding.fromObject({
+          name: "Mock Finding",
+          description: "Mock finding for testing",
+          alertId: "NETHERMIND-1",
+          protocol: "UniswapV3",
+          severity: FindingSeverity.Info,
+          type: FindingType.Info,
+          metadata: {
+            poolAddress: cachedPoolAddress,
+            amount0: "1000",
+            amount1: "2000",
+            sender: senderAddress,
+            recipient: recipientAddress,
+            liquidity: "500",
+          },
+        })
     );
 
     const txEvent1 = new TestTransactionEvent()
@@ -270,22 +274,23 @@ describe("Uniswap V3 Swap Detector Agent", () => {
       async () => {
         throw new Error("Mock error during pool address verification");
       }, // Mock verifyPoolAddress to throw error
-      () => Finding.fromObject({
-        name: "Mock Finding",
-        description: "Mock finding for testing",
-        alertId: "NETHERMIND-1",
-        protocol: "UniswapV3",
-        severity: FindingSeverity.Info,
-        type: FindingType.Info,
-        metadata: {
-          poolAddress,
-          amount0: "1000",
-          amount1: "2000",
-          sender: senderAddress,
-          recipient: recipientAddress,
-          liquidity: "500",
-        },
-      })
+      () =>
+        Finding.fromObject({
+          name: "Mock Finding",
+          description: "Mock finding for testing",
+          alertId: "NETHERMIND-1",
+          protocol: "UniswapV3",
+          severity: FindingSeverity.Info,
+          type: FindingType.Info,
+          metadata: {
+            poolAddress,
+            amount0: "1000",
+            amount1: "2000",
+            sender: senderAddress,
+            recipient: recipientAddress,
+            liquidity: "500",
+          },
+        })
     );
 
     const txEvent = new TestTransactionEvent()
@@ -308,5 +313,4 @@ describe("Uniswap V3 Swap Detector Agent", () => {
 
     expect(findings).toEqual([]);
   });
-
 });
