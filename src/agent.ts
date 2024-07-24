@@ -1,7 +1,7 @@
 import { Finding, HandleTransaction, TransactionEvent, getEthersProvider, ethers } from "forta-agent";
 import { UNISWAP_FACTORY, SWAP_EVENT, UNISWAP_POOL_ABI, POOL_INIT_CODE_HASH } from "./constants";
-import { createFinding as defaultCreateFinding } from "./findings";
-import { verifyPoolAddress as defaultVerifyPoolAddress, cache } from "./utils";
+import { createFinding } from "./findings";
+import { verifyPoolAddress, cache } from "./utils";
 
 const ethersProvider = getEthersProvider();
 
@@ -9,9 +9,7 @@ export function provideHandleTransaction(
   swapEventAbi: string,
   factoryAddress: string,
   initHashCode: string,
-  provider: ethers.providers.JsonRpcProvider,
-  verifyPoolAddress: typeof defaultVerifyPoolAddress = defaultVerifyPoolAddress,
-  createFinding: typeof defaultCreateFinding = defaultCreateFinding
+  provider: ethers.providers.JsonRpcProvider
 ): HandleTransaction {
   return async function handleTransaction(txEvent: TransactionEvent) {
     const findings: Finding[] = [];

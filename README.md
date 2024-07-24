@@ -6,8 +6,10 @@ This bot detects UniswapV3 Swap events across multiple EVM-compatible blockchain
 
 ## Supported Chains
 
-- Ethereum
-- All other EVM chains
+- Ethereum (Mainnet - Chain ID: 1)
+- Optimism (Chain ID: 10)
+- Polygon (Chain ID: 137)
+- Arbitrum (Chain ID: 42161)
 
 ## Alerts
 

@@ -40,7 +40,6 @@ export const verifyPoolAddress = async (
 
     return isValid;
   } catch (error) {
-    console.error(`Error fetching pool parameters: ${error}`);
     return false;
   }
 };
