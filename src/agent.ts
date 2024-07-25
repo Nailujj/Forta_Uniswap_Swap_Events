@@ -1,44 +1,60 @@
-import { Finding, HandleTransaction, TransactionEvent, getEthersProvider, ethers } from "forta-agent";
-import { UNISWAP_FACTORY, SWAP_EVENT, UNISWAP_POOL_ABI, POOL_INIT_CODE_HASH } from "./constants";
-import { createFinding } from "./findings";
-import { verifyPoolAddress, cache } from "./utils";
-
-const ethersProvider = getEthersProvider();
+import {
+  Finding,
+  HandleTransaction,
+  TransactionEvent,
+  FindingSeverity,
+  FindingType,
+  getEthersProvider,
+} from "forta-agent";
+import { UNISWAP_FACTORY_ADDRESS, UNISWAP_POOL_FUNCTION_SIGNATURE, SWAP_FUNCTION_SIGNATURE } from "./constants";
+import { ethers } from "ethers";
+import { getPoolValues, verifyAddress } from "./utils";
 
 export function provideHandleTransaction(
-  swapEventAbi: string,
-  factoryAddress: string,
-  initHashCode: string,
-  provider: ethers.providers.JsonRpcProvider
+  provider: ethers.providers.Provider,
+  uniswapPoolABI: string[],
+  factoryAddress: string
 ): HandleTransaction {
   return async function handleTransaction(txEvent: TransactionEvent) {
     const findings: Finding[] = [];
 
-    const swaps = txEvent.filterLog(swapEventAbi);
+    const swapTxs = txEvent.filterLog(SWAP_FUNCTION_SIGNATURE);
 
-    if (!swaps.length) return findings;
-
-    for (const swap of swaps) {
-      let isValid: boolean;
-
+    for (const tx of swapTxs) {
       try {
-        isValid = await verifyPoolAddress(
-          UNISWAP_POOL_ABI,
-          swap.address,
-          factoryAddress,
-          initHashCode,
-          txEvent.block.number,
-          provider,
-          cache
+        const [sender, recipient, amount0, amount1, liquidity] = tx.args;
+
+        const poolAddress = tx.address;
+
+        const { token0, token1, fee } = await getPoolValues(poolAddress, provider, uniswapPoolABI, txEvent.blockNumber);
+
+        const uniswapAddressBool = await verifyAddress(poolAddress, factoryAddress, token0, token1, fee);
+
+        if (!uniswapAddressBool) {
+          continue;
+        }
+
+        findings.push(
+          Finding.fromObject({
+            name: "Uniswap V3 Swap Event Detector",
+            description: "Detects new Swap events from Uniswap V3 pool",
+            alertId: "NETHERMIND-1",
+            severity: FindingSeverity.Info,
+            type: FindingType.Info,
+            protocol: "UniswapV3",
+            metadata: {
+              poolAddress: poolAddress.toLowerCase(),
+              sender: sender.toString(),
+              recipient: recipient.toString(),
+              amount0: amount0.toString(),
+              amount1: amount1.toString(),
+              liquidity: liquidity.toString(),
+            },
+          })
         );
-      } catch (error) {
-        console.error(`Error verifying pool address: ${error}`);
-        continue;
+      } catch (e) {
+        return findings;
       }
-
-      if (!isValid) continue;
-
-      findings.push(createFinding(swap.address, swap.args));
     }
 
     return findings;
@@ -46,5 +62,9 @@ export function provideHandleTransaction(
 }
 
 export default {
-  handleTransaction: provideHandleTransaction(SWAP_EVENT, UNISWAP_FACTORY, POOL_INIT_CODE_HASH, ethersProvider),
+  handleTransaction: provideHandleTransaction(
+    getEthersProvider(),
+    UNISWAP_POOL_FUNCTION_SIGNATURE,
+    UNISWAP_FACTORY_ADDRESS
+  ),
 };

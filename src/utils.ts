@@ -1,45 +1,52 @@
-import { AbiCoder, solidityKeccak256 } from "ethers/lib/utils";
-import { getCreate2Address } from "ethers/lib/utils";
-import { providers, Contract } from "ethers";
+import { ethers } from "ethers";
+import { Provider } from "@ethersproject/providers";
 import { LRUCache } from "lru-cache";
+import { POOL_INIT_CODE_HASH } from "./constants";
 
-const options = { max: 1000 };
-export const cache: LRUCache<string, boolean> = new LRUCache(options);
+export const cache: LRUCache<string, boolean> = new LRUCache({
+  max: 1000,
+});
 
-export const computePoolAddress = (factoryAddress: string, initHashCode: string, parameters: any[]): string => {
-  const abiCoder = new AbiCoder();
-  const encodedParams = abiCoder.encode(["address", "address", "uint24"], parameters);
-  const salt = solidityKeccak256(["bytes"], [encodedParams]);
-  return getCreate2Address(factoryAddress, salt, initHashCode).toLowerCase();
+export const getPoolValues = async (
+  poolAddress: string,
+  provider: ethers.providers.Provider,
+  uniswapPoolABI: string[],
+  blockNumber: number
+) => {
+  const uniswapPoolContract = new ethers.Contract(poolAddress, uniswapPoolABI, provider);
+  // Use Promise.all to parallelize the asynchronous calls
+  const [token0, token1, fee] = await Promise.all([
+    uniswapPoolContract.token0({ blockTag: blockNumber }),
+    uniswapPoolContract.token1({ blockTag: blockNumber }),
+    uniswapPoolContract.fee({ blockTag: blockNumber }),
+  ]);
+
+  return { token0, token1, fee };
 };
 
-export const verifyPoolAddress = async (
-  poolAbi: string | string[],
+export const computeAddress = (factoryAddress: string, poolValues: any[], poolHash: string) => {
+  const encodedAbiData = ethers.utils.defaultAbiCoder.encode(["address", "address", "uint24"], poolValues);
+  const derivationIdentifier = ethers.utils.solidityKeccak256(["bytes"], [encodedAbiData]);
+  const poolAddress = ethers.utils.getCreate2Address(factoryAddress, derivationIdentifier, poolHash);
+  return poolAddress;
+};
+export const verifyAddress = async (
   poolAddress: string,
-  factoryAddress: string,
-  initHashCode: string,
-  block: number,
-  provider: providers.JsonRpcProvider,
-  cache: LRUCache<string, boolean>
+  uniswapFactoryAddress: string,
+  token0: string,
+  token1: string,
+  fee: string
 ): Promise<boolean> => {
-  if (cache.has(poolAddress)) return cache.get(poolAddress) as boolean;
+  if (cache.has(poolAddress)) {
+    const cachedResult = cache.get(poolAddress);
 
-  try {
-    const poolContract = new Contract(poolAddress, poolAbi, provider);
-    const parameters = await Promise.all([
-      poolContract.token0({ blockTag: block }),
-      poolContract.token1({ blockTag: block }),
-      poolContract.fee({ blockTag: block }),
-    ]);
-
-    const computedAddress = computePoolAddress(factoryAddress, initHashCode, parameters);
-
-    const isValid = computedAddress === poolAddress.toLowerCase();
-
-    cache.set(poolAddress, isValid);
-
-    return isValid;
-  } catch (error) {
-    return false;
+    if (cachedResult !== undefined) {
+      return cachedResult as boolean;
+    }
   }
+
+  const finalPoolAddress = computeAddress(uniswapFactoryAddress, [token0, token1, fee], POOL_INIT_CODE_HASH);
+  let uniswapAddressBool = finalPoolAddress.toLowerCase() == poolAddress.toLowerCase();
+  cache.set(poolAddress, uniswapAddressBool);
+  return uniswapAddressBool;
 };
