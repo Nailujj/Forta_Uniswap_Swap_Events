@@ -17,7 +17,7 @@ The UniswapV3 Swap Detector generates alerts when a swap event is detected. Each
 
 - **Name**: "UniswapV3 Swap Detector"
 - **Description**: "New swap detected"
-- **Alert ID**: "UniswapV3-Swap"
+- **Alert ID**: "NETHERMIND-1"
 - **Protocol**: "UniswapV3"
 - **Severity**: Information level (currently set to `Info`)
 - **Type**: Informational alert (currently set to `Info`)
