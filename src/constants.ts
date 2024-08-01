@@ -5,5 +5,5 @@ export const UNISWAP_POOL_FUNCTION_SIGNATURE = [
   "function token1() external view returns (address)",
   "function fee() external view returns (uint24)",
 ];
-export const SWAP_FUNCTION_SIGNATURE: string =
+export const SWAP_EVENT_ABI: string =
   "event Swap (address indexed sender, address indexed recipient, int256 amount0, int256 amount1, uint160 sqrtPriceX96, uint128 liquidity, int24 tick)";

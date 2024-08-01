@@ -6,7 +6,7 @@ import {
   FindingType,
   getEthersProvider,
 } from "forta-agent";
-import { UNISWAP_FACTORY_ADDRESS, UNISWAP_POOL_FUNCTION_SIGNATURE, SWAP_FUNCTION_SIGNATURE } from "./constants";
+import { UNISWAP_FACTORY_ADDRESS, UNISWAP_POOL_FUNCTION_SIGNATURE, SWAP_EVENT_ABI } from "./constants";
 import { ethers } from "ethers";
 import { getPoolValues, verifyAddress } from "./utils";
 
@@ -18,7 +18,7 @@ export function provideHandleTransaction(
   return async function handleTransaction(txEvent: TransactionEvent) {
     const findings: Finding[] = [];
 
-    const swapTxs = txEvent.filterLog(SWAP_FUNCTION_SIGNATURE);
+    const swapTxs = txEvent.filterLog(SWAP_EVENT_ABI);
 
     for (const tx of swapTxs) {
       try {

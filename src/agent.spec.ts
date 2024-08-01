@@ -1,5 +1,5 @@
 import { Finding, FindingSeverity, FindingType, HandleTransaction } from "forta-agent";
-import { POOL_INIT_CODE_HASH, UNISWAP_POOL_FUNCTION_SIGNATURE, SWAP_FUNCTION_SIGNATURE } from "./constants";
+import { POOL_INIT_CODE_HASH, UNISWAP_POOL_FUNCTION_SIGNATURE, SWAP_EVENT_ABI } from "./constants";
 import { TestTransactionEvent, MockEthersProvider } from "forta-agent-tools/lib/test";
 import { createAddress } from "forta-agent-tools";
 import { ethers } from "ethers";
@@ -42,16 +42,21 @@ describe("Uniswap V3 Swap Event bot", () => {
       mockTxEvent = new TestTransactionEvent();
       mockTxEvent.setBlock(0);
       mockTxEvent.setFrom(mockRandAddress).setTo(mockPoolAddress).setValue("123456789");
-
+  
+      // Add a random non-swap event
+      const RANDOM_EVENT_SIGNATURE = "event RandomEvent(address indexed sender, uint256 value)";
+      const randomEvent = [createAddress("0x789"), ethers.BigNumber.from("987654")];
+      mockTxEvent.addEventLog(RANDOM_EVENT_SIGNATURE, mockRandAddress, randomEvent);
+  
       const findings = await handleTransaction(mockTxEvent);
-
+  
       expect(findings).toStrictEqual([]);
     });
 
     it("returns empty findings if the swap doesn't occur on Uniswap V3", async () => {
       mockTxEvent = new TestTransactionEvent();
       mockTxEvent.setBlock(0);
-      mockTxEvent.addEventLog(SWAP_FUNCTION_SIGNATURE, mockRandAddress, mockEvent);
+      mockTxEvent.addEventLog(SWAP_EVENT_ABI, mockRandAddress, mockEvent);
 
       mockProvider.addCallTo(mockRandAddress, 0, ProxyInterface, "token0", {
         inputs: [],
@@ -75,7 +80,7 @@ describe("Uniswap V3 Swap Event bot", () => {
     it("returns findings if valid swap event", async () => {
       mockTxEvent = new TestTransactionEvent();
       mockTxEvent.setBlock(0);
-      mockTxEvent.addEventLog(SWAP_FUNCTION_SIGNATURE, mockPoolAddress, mockEvent);
+      mockTxEvent.addEventLog(SWAP_EVENT_ABI, mockPoolAddress, mockEvent);
 
       mockProvider.addCallTo(mockPoolAddress, 0, ProxyInterface, "token0", {
         inputs: [],
@@ -117,7 +122,7 @@ describe("Uniswap V3 Swap Event bot", () => {
     it("Caches verified pool addresses", async () => {
       mockTxEvent = new TestTransactionEvent();
       mockTxEvent.setBlock(0);
-      mockTxEvent.addEventLog(SWAP_FUNCTION_SIGNATURE, mockPoolAddress, mockEvent);
+      mockTxEvent.addEventLog(SWAP_EVENT_ABI, mockPoolAddress, mockEvent);
 
       mockProvider.addCallTo(mockPoolAddress, 0, ProxyInterface, "token0", {
         inputs: [],
@@ -142,12 +147,12 @@ describe("Uniswap V3 Swap Event bot", () => {
       mockTxEvent.setBlock(0);
 
       // Add two swap events for a valid pool
-      mockTxEvent.addEventLog(SWAP_FUNCTION_SIGNATURE, mockPoolAddress, mockEvent);
-      mockTxEvent.addEventLog(SWAP_FUNCTION_SIGNATURE, mockPoolAddress, mockEvent);
+      mockTxEvent.addEventLog(SWAP_EVENT_ABI, mockPoolAddress, mockEvent);
+      mockTxEvent.addEventLog(SWAP_EVENT_ABI, mockPoolAddress, mockEvent);
 
       // Add one swap event for a non-valid pool
       const nonValidPoolAddress = createAddress("0xdefabc"); // Using a valid hex string
-      mockTxEvent.addEventLog(SWAP_FUNCTION_SIGNATURE, nonValidPoolAddress, mockEvent);
+      mockTxEvent.addEventLog(SWAP_EVENT_ABI, nonValidPoolAddress, mockEvent);
 
       // Mock the provider responses for valid pool
       mockProvider.addCallTo(mockPoolAddress, 0, ProxyInterface, "token0", {
